@@ -1,5 +1,5 @@
-# signal-pool
-callback framework for C++
+# Signal Pool
+Callback framework for C++
 
 ## Features
 
