@@ -9,7 +9,7 @@ int Identity::GetSingleMaxSize()
 	class SizeClass {
 	public:
 		virtual ~SizeClass() = 0;
-		int Function(const int& param) { }
+		void Function(const int& param) { }
 	};//class SizeClass
 	static unsigned int singleMaxSize = MAX(2 * sizeof(&SizeClass::Function), 32);
 	return singleMaxSize;
