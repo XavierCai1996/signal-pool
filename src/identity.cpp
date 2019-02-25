@@ -4,7 +4,7 @@
 
 unsigned int Identity::m_maxSize = 4 * Identity::GetSingleMaxSize();
 
-int Identity::GetSingleMaxSize()
+unsigned int Identity::GetSingleMaxSize()
 {
 	class SizeClass {
 	public:
