@@ -18,6 +18,17 @@ public:
 		virtual ~Handle() { };
     };
     typedef std::map<Identity, SignalType::Handle*> BufferMap;
+    struct BufferInterface {
+        SignalType::BufferMap buffer;
+        ~BufferInterface()
+        {
+            for(SignalType::BufferMap::iterator ite = buffer.begin(); ite != buffer.end(); ite++)
+            {
+                delete ite->second;
+            }
+            buffer.clear();
+        }
+    };//struct BufferInterface
 };
 
 //one argument signal sink template
@@ -33,18 +44,20 @@ private:
 	virtual ~SignalHandle() { };
         
     protected:
-        virtual Identity GetIdentity() const = 0;
+        SignalHandle(const Identity& id)
+            : m_id(id)
+        { }
         //identify the handle with its Identity, so that we are able to compare them
         static SignalHandle* Buffer(SignalHandle* handle)
         {
-            Identity id = handle->GetIdentity();
-            SignalType::BufferMap::iterator find = m_buffer.find(id);
-            if(find != m_buffer.end())
+            Identity id = handle->m_id;
+            SignalType::BufferMap::iterator find = m_buffer.buffer.find(id);
+            if(find != m_buffer.buffer.end())
             {
                 delete handle;
                 return dynamic_cast<SignalHandle*>(find->second);
             }
-            m_buffer[id] = dynamic_cast<SignalType::Handle*>(handle);
+            m_buffer.buffer[id] = dynamic_cast<SignalType::Handle*>(handle);
             return handle;
         }
         
@@ -56,17 +69,10 @@ private:
             private:
                 _FUNC m_function;
                 _OBJ* m_obj;
-		Identity m_id;
-                
-            protected:
-                virtual Identity GetIdentity() const
-                {
-			return m_id;
-                }
                 
             public:
                 SignalHandleImpl(_FUNC function, _OBJ* obj)
-			: m_function(function), m_obj(obj), m_id(Identity(function) + Identity(obj))
+                    : SignalHandle(Identity(function) + Identity(obj)), m_function(function), m_obj(obj)
                 { }
                 
                 virtual _RETURN Invoke(_PARAM param) const
@@ -77,23 +83,38 @@ private:
             } *handle = new SignalHandleImpl(function, obj);
             return Buffer(dynamic_cast<SignalHandle*>(handle));
         }
+	
+	template <typename _FUNC, typename _OBJ>
+        static SignalHandle* Create(_FUNC function, const _OBJ* obj)
+        {
+            class SignalConstHandleImpl : public SignalHandle {
+            private:
+                _FUNC m_function;
+                const _OBJ* m_obj;
+                
+            public:
+                SignalConstHandleImpl(_FUNC function, const _OBJ* obj)
+                    : SignalHandle(Identity(function) + Identity(obj)), m_function(function), m_obj(obj)
+                { }
+                
+                virtual _RETURN Invoke(_PARAM param) const
+                {
+                    const _OBJ& ref = *m_obj;
+                    return (ref.*m_function)(param);
+                }
+            } *handle = new SignalConstHandleImpl(function, obj);
+            return Buffer(dynamic_cast<SignalHandle*>(handle));
+        }
         
         static SignalHandle* Create(StaticSignalHandle function)
         {
             class SignalHandleStaticImpl : public SignalHandle {
             private:
                 StaticSignalHandle m_function;
-		Identity m_id;
-                
-            protected:
-                virtual Identity GetIdentity() const
-                {
-			return m_id;
-                }
-                
+		
             public:
                 SignalHandleStaticImpl(StaticSignalHandle function)
-			: m_function(function), m_id(Identity(function))
+                    : SignalHandle(Identity(function)), m_function(function)
                 { }
                 
                 virtual _RETURN Invoke(_PARAM param) const
@@ -105,7 +126,8 @@ private:
         }
         
     private:
-        static SignalType::BufferMap m_buffer;
+        static SignalType::BufferInterface m_buffer;
+        Identity m_id;
     };//class SignalHandle
     
     SignalHandle* m_handle;
@@ -167,7 +189,7 @@ public:
     { }
     
     template <typename _T, typename _OBJ>
-    SignalSinkTemplate<_RETURN, _PARAM>(_RETURN (_T::*function)(_PARAM) const, _OBJ* obj)
+    SignalSinkTemplate<_RETURN, _PARAM>(_RETURN (_T::*function)(_PARAM) const, const _OBJ* obj)
         : m_handle(SignalHandle::Create(function, obj))
     { }
     
@@ -178,7 +200,7 @@ public:
 };//class SignalSink
 
 template <typename _RETURN, typename _PARAM>
-SignalType::BufferMap SignalSinkTemplate<_RETURN, _PARAM>::SignalHandle::m_buffer;
+SignalType::BufferInterface SignalSinkTemplate<_RETURN, _PARAM>::SignalHandle::m_buffer;
 
 
 #endif
