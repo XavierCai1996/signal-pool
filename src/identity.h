@@ -13,7 +13,7 @@ private:
 	static unsigned int m_maxSize;
 	std::string m_id;
 
-	static int GetSingleMaxSize();
+	static unsigned int GetSingleMaxSize();
 
 	template <typename _T>
 	static std::string Create(const _T& v)
