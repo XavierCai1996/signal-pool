@@ -34,7 +34,7 @@ private:
 	typedef type_id_type Verify;
 
 	Verify m_verify;
-	const char* m_name;
+	char* m_name;
 	
 	template <typename _T>
 	static Verify GetVerify()
@@ -43,14 +43,18 @@ private:
 	}
 
 	template <typename _T>
-	static const char* GetName()
+	static char* GetName()
 	{
 		return abi::__cxa_demangle(typeid(_T).name(), NULL, NULL, NULL);
 	}
 
-	TypeVerify(Verify verify, const char* name);
+	TypeVerify(Verify verify, char* name);
 	
 public:
+	TypeVerify(const TypeVerify& o);
+	TypeVerify& operator = (const TypeVerify& o);
+	~TypeVerify();
+	
 	template <class _T>
 	TypeVerify(const _T &o)
 		: m_verify(GetVerify<_T>()), m_name(GetName<_T>())
