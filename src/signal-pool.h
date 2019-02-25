@@ -22,7 +22,10 @@ public:
 	
 protected:
 	typedef std::map<Identity, SignalSource*> SignalMap;
+	typedef SignalPool<_RETURN, _PARAM>* Relay;
+	typedef std::map<Relay, bool> RelayMap;
 	SignalMap m_pool;
+	RelayMap m_relays;
 
 	SignalSource* Get(const Identity& identity)
 	{
@@ -35,6 +38,12 @@ protected:
 		}
 		return find->second;
 	}
+	
+	bool Have(const Identity& identity) const
+	{
+		return m_pool.find(identity) != m_pool.end();
+	}
+	
 	virtual SignalSource* CreateSignalSource() const
 	{
 		return new SignalPool<_RETURN, _PARAM>::SignalSource();
@@ -58,6 +67,15 @@ public:
 	
 	_RETURN Invoke(const Identity& identity, _PARAM param) const
 	{
+		//relay
+		for(typename RelayMap::const_iterator ite = m_relays.begin(); ite != m_relays.end(); ite++)
+		{
+			if(!ite->second || ite->first->Have(identity))
+			{
+				ite->first->Invoke(identity, param);
+			}
+		}
+
 		typename SignalMap::const_iterator find = m_pool.find(identity);
 		if(find == m_pool.end())
 		{
@@ -72,6 +90,18 @@ public:
 	bool HookOff(const Identity& identity, const SignalSink& sink)
 	{
 		return Get(identity)->HookOff(sink);
+	}
+	void HookOn(const Relay& relay, bool isTerminate = false) //if is terminate, only relay signal existed in pool
+	{
+		m_relays[relay] = isTerminate;
+	}
+	void HookOff(const Relay& relay)
+	{
+		typename RelayMap::iterator find = m_relays.find(relay);
+		if(find != m_relays.end())
+		{
+			m_relays.erase(find);
+		}
 	}
 
 	//list signal sources as string array
@@ -103,6 +133,7 @@ private:
 public:
 	typedef SignalSinkTemplate<_RETURN, _PARAM> SignalSink;
 	typedef SignalSourceTemplate<_RETURN, _PARAM> SignalSource;
+	typedef SignalPool<_RETURN, _PARAM>* Relay;
 	
 	_RETURN Invoke(const Identity& identity, _PARAM param) const
 	{
@@ -115,6 +146,26 @@ public:
 	bool HookOff(const Identity& identity, const SignalSink& sink)
 	{
 		return m_pool.HookOff(identity, sink);
+	}
+	void HookOn(const Relay& relay, bool isTerminate = false)
+	{
+		m_pool.HookOn(relay, isTerminate);
+	}
+	void HookOff(const Relay& relay)
+	{
+		m_pool.HookOff(relay);
+	}
+	void HookOn(SignalClassBaseTemplate<_RETURN, _PARAM>* obj, bool isTerminate = false)
+	{
+		m_pool.HookOn(&(obj->m_pool), isTerminate);
+	}
+	void HookOff(SignalClassBaseTemplate<_RETURN, _PARAM>* obj)
+	{
+		m_pool.HookOff(&(obj->m_pool));
+	}
+	std::vector<std::string> List(const std::string& key = "") const
+	{
+		return m_pool.List(key);
 	}
 };
 
