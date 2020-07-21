@@ -11,7 +11,7 @@ Callback framework for C++
 
 * Provide a template base class to encapsulate the interfaces of signal pool to derived classed
 
-* You may think it's too limited to use callback with only ONE argument, but in fact, it's really enough if you try combining this project and [parameter-list](https://github.com/XavierCai1996/parameter-list) together
+* You may think it's too limited to use callback with only ONE argument, but in fact, it's really enough if you try combining this project and [parameter-list](https://github.com/xavier-cai/parameter-list) together
 
 ## Directories
 
@@ -19,7 +19,7 @@ Callback framework for C++
 
 * `./example/` : a simple example of this callback & signal framework
 
-* `./src-parameter-list/` : source codes of my another project [Parameter List](https://github.com/XavierCai1996/parameter-list), it's amazing to combine these two projects together!
+* `./src-parameter-list/` : source codes of my another project [Parameter List](https://github.com/xavier-cai/parameter-list), it's amazing to combine these two projects together!
 
 * `./example-with-parameter-list/` : a example to use signal pool with parameter list 
 
@@ -27,13 +27,13 @@ Callback framework for C++
 
 ### Simple example
 
-1.Enter to the folder `./example/`.
+1.Go to the folder `./example/`.
 
 2.Run the script `./run.ls`.
 
 ### A example with parameter list
 
-1.Enter to the folder `./example-with-parameter-lish/`.
+1.Go to the folder `./example-with-parameter-lish/`.
 
 2.Run the script `./run.ls`.
 
